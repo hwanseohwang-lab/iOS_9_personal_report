@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+\<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
@@ -812,7 +812,14 @@
             ${p.teamSize ? `<div class="meta-chip">👥 ${p.teamSize}인</div>` : ''}
           </div>
           ${p.description ? `<div class="proj-desc">${p.description}</div>` : ''}
-          <div class="tech-chips">${techs.map(t => `<div class="tech-chip">${t}</div>`).join('')}</div>`;
+          <div class="tech-chips">${techs.map(t => `<div class="tech-chip">${t}</div>`).join('')}</div>
+          ${(p.githubUrl || p.dashboardUrl || p.appStoreUrl || p.demoVideoUrl) ? `
+          <div class="proj-links">
+            ${p.githubUrl     ? `<a href="${p.githubUrl}"     target="_blank" class="proj-link">🔗 GitHub</a>` : ''}
+            ${p.dashboardUrl  ? `<a href="${p.dashboardUrl}"  target="_blank" class="proj-link">📊 대시보드</a>` : ''}
+            ${p.appStoreUrl   ? `<a href="${p.appStoreUrl}"   target="_blank" class="proj-link">📱 App Store</a>` : ''}
+            ${p.demoVideoUrl  ? `<a href="${p.demoVideoUrl}"  target="_blank" class="proj-link">🎬 시연영상</a>` : ''}
+          </div>` : ''}`;
         projList.appendChild(el);
       });
     }
