@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Personal Report</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    :root {
+      --label:   #000000;
+      --label2:  rgba(60, 60, 67, 0.60);
+      --label3:  rgba(60, 60, 67, 0.30);
+      --sep:     rgba(60, 60, 67, 0.18);
+      --blue:    #007AFF;
+      --green:   #34C759;
+      --orange:  #FF9500;
+      --red:     #FF3B30;
+      --purple:  #AF52DE;
+      --yellow:  #FFCC00;
+    }
+
+    html, body {
+      font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+      background: #EDE8DF;
+      color: var(--label);
+      min-height: 100%;
+      overflow-x: hidden;
+    }
+
+    /* ── 벽지 (로그인과 동일) ── */
+    .wallpaper {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 65% 55% at 12% 18%,  rgba(255,130, 60,0.82) 0%, transparent 55%),
+        radial-gradient(ellipse 55% 50% at 88%  8%,  rgba( 80,160,255,0.78) 0%, transparent 52%),
+        radial-gradient(ellipse 70% 55% at 50% 95%,  rgba(100,210,185,0.72) 0%, transparent 58%),
+        radial-gradient(ellipse 55% 48% at 88% 78%,  rgba(185,110,255,0.68) 0%, transparent 52%),
+        radial-gradient(ellipse 48% 55% at 18% 82%,  rgba(255,190, 80,0.62) 0%, transparent 52%),
+        radial-gradient(ellipse 60% 40% at 50% 45%,  rgba(255,220,180,0.40) 0%, transparent 55%),
+        #EDE8DF;
+    }
+
+    /* ── iOS 상태바 ── */
+    .status-bar {
+      position: relative; z-index: 10;
+      height: 54px;
+      display: flex; align-items: flex-end; justify-content: space-between;
+      padding: 0 28px 10px;
+      color: #1C1C1E;
+    }
+    .sb-time { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
+    .sb-right { display: flex; align-items: center; gap: 7px; }
+
+    /* ── iOS 네비게이션 바 ── */
+    .nav-bar {
+      position: sticky; top: 0; z-index: 150;
+      height: 44px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px;
+
+      background: rgba(255,255,255,0.55);
+      backdrop-filter: blur(48px) saturate(200%);
+      -webkit-backdrop-filter: blur(48px) saturate(200%);
+      border-bottom: 0.33px solid rgba(60,60,67,0.22);
+    }
+    .nav-back {
+      display: flex; align-items: center; gap: 4px;
+      color: var(--blue); font-size: 17px; font-weight: 400;
+      text-decoration: none; cursor: pointer;
+    }
+    .nav-back svg { width: 9px; height: 16px; }
+    .nav-title {
+      font-size: 17px; font-weight: 600;
+      color: #1C1C1E; letter-spacing: -0.2px;
+      position: absolute; left: 50%; transform: translateX(-50%);
+    }
+    .nav-right { width: 60px; }
+
+    /* ── 메인 컨텐츠 ── */
+    .screen {
+      position: relative; z-index: 10;
+    }
+
+    /* ── Hero 섹션 ── */
+    .hero {
+      padding: 32px 20px 28px;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.45);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255,255,255,0.80);
+      border-top-color: rgba(255,255,255,0.98);
+      border-radius: 50px;
+      padding: 6px 16px;
+      font-size: 12px; font-weight: 600;
+      color: var(--label2); letter-spacing: 0.5px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
+    }
+    .hero-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px;
+
+      background: rgba(255,255,255,0.40);
+      backdrop-filter: blur(32px) saturate(200%);
+      -webkit-backdrop-filter: blur(32px) saturate(200%);
+      border: 1px solid rgba(255,255,255,0.90);
+      border-top-color: rgba(255,255,255,1.00);
+      box-shadow:
+        0 4px 24px rgba(0,0,0,0.12),
+        inset 0 1px 0 rgba(255,255,255,0.90);
+    }
+    .hero-name {
+      font-size: 28px; font-weight: 700; letter-spacing: -0.5px;
+      color: #1C1C1E; margin-bottom: 4px;
+    }
+    .hero-track {
+      font-size: 14px; color: var(--label2); margin-bottom: 4px;
+    }
+    .hero-period {
+      font-size: 13px; color: var(--label3);
+    }
+    .hero-quote-wrap {
+      margin: 18px 0 0; text-align: left;
+    }
+    .hero-quote-label {
+      font-size: 11px; font-weight: 600; color: var(--blue);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 0 4px; margin-bottom: 6px;
+    }
+    .hero-quote {
+      background: rgba(255,255,255,0.35);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.75);
+      border-top-color: rgba(255,255,255,0.95);
+      border-left: 3px solid rgba(0,122,255,0.5);
+      border-radius: 0 12px 12px 0;
+      padding: 12px 16px;
+      font-size: 14px; color: var(--label2);
+      line-height: 1.6; font-style: italic;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+
+    /* ── 섹션 공통 ── */
+    .section { padding: 0 20px 24px; }
+
+    .section-label {
+      font-size: 13px; font-weight: 400;
+      color: var(--label2);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 0 4px;
+      margin-bottom: 8px;
+    }
+
+    /* ── Liquid Glass 카드 ── */
+    .glass-card {
+      width: 100%;
+      position: relative; overflow: hidden;
+      border-radius: 20px;
+
+      background: rgba(255,255,255,0.52);
+      backdrop-filter: blur(48px) saturate(200%) brightness(1.04);
+      -webkit-backdrop-filter: blur(48px) saturate(200%) brightness(1.04);
+
+      border: 1px solid rgba(255,255,255,0.82);
+      border-top-color:    rgba(255,255,255,1.00);
+      border-left-color:   rgba(255,255,255,0.90);
+      border-bottom-color: rgba(255,255,255,0.42);
+
+      box-shadow:
+        0 2px 48px rgba(0,0,0,0.10),
+        0 1px  3px rgba(0,0,0,0.06),
+        inset 0  1px 0 rgba(255,255,255,0.90),
+        inset 0 -1px 0 rgba(255,255,255,0.18);
+    }
+    .glass-card::before {
+      content: ''; position: absolute; inset: 0;
+      border-radius: inherit; z-index: 1; pointer-events: none;
+      background: linear-gradient(145deg,
+        rgba(255,255,255,0.36) 0%,
+        rgba(255,255,255,0.08) 28%,
+        rgba(255,255,255,0.00) 52%,
+        rgba(255,255,255,0.10) 100%);
+    }
+
+    /* 카드 안 셀 구분선 */
+    .card-row {
+      position: relative; z-index: 2;
+      padding: 14px 18px;
+    }
+    .card-row + .card-row::before {
+      content: '';
+      position: absolute; top: 0; left: 18px; right: 0;
+      height: 0.33px; background: var(--sep);
+    }
+
+    /* ── 출석 섹션 ── */
+    .att-top {
+      display: flex; align-items: center; gap: 20px;
+      padding: 20px 18px 16px;
+      position: relative; z-index: 2;
+    }
+    .donut-wrap { position: relative; width: 90px; height: 90px; flex-shrink: 0; }
+    .donut-center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .donut-pct { font-size: 20px; font-weight: 800; line-height: 1; color: #1C1C1E; }
+    .donut-sub { font-size: 10px; color: var(--label2); margin-top: 1px; }
+
+    .att-legend { flex: 1; }
+    .legend-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 7px; font-size: 14px;
+    }
+    .legend-row:last-child { margin-bottom: 0; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .legend-name { flex: 1; color: var(--label2); }
+    .legend-val { font-weight: 600; color: #1C1C1E; }
+
+    .att-grid {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      border-top: 0.33px solid var(--sep);
+      position: relative; z-index: 2;
+    }
+    .att-cell {
+      padding: 14px 0; text-align: center;
+      border-right: 0.33px solid var(--sep);
+    }
+    .att-cell:last-child { border-right: none; }
+    .att-val { font-size: 22px; font-weight: 800; line-height: 1; margin-bottom: 3px; }
+    .att-lbl { font-size: 11px; color: var(--label2); }
+
+    /* ── 프로젝트 썸네일 ── */
+    .proj-thumb {
+      position: relative; width: 100%; margin-bottom: 12px;
+      border-radius: 10px; overflow: hidden; cursor: pointer;
+      aspect-ratio: 16/9; background: rgba(120,120,128,0.10);
+    }
+    .proj-thumb img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    .proj-thumb:hover img { transform: scale(1.02); }
+    .proj-thumb-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 50%);
+      display: flex; align-items: flex-end; padding: 10px 12px;
+    }
+    .proj-thumb-label {
+      font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.92);
+      display: flex; align-items: center; gap: 5px;
+    }
+
+    /* ── 썸네일 모달 ── */
+    .thumb-modal {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .thumb-modal.open { opacity: 1; pointer-events: all; }
+    .thumb-modal-inner {
+      position: relative; max-width: 100%; max-height: 85vh;
+      border-radius: 16px; overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.50);
+      transform: scale(0.92);
+      transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .thumb-modal.open .thumb-modal-inner { transform: scale(1); }
+    .thumb-modal-inner img { max-width: 100%; max-height: 85vh; display: block; }
+    .thumb-close {
+      position: absolute; top: 12px; right: 12px;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(0,0,0,0.50); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 16px;
+    }
+
+    /* ── 프로젝트 ── */
+    .proj-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 10px; margin-bottom: 8px;
+    }
+    .proj-name { font-size: 17px; font-weight: 700; color: #1C1C1E; }
+    .award-badge {
+      background: linear-gradient(135deg, #FFCC00, #FF9500);
+      color: #000; font-size: 11px; font-weight: 700;
+      padding: 3px 10px; border-radius: 50px;
+      white-space: nowrap; flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(255,180,0,0.35);
+    }
+    .type-badge {
+      font-size: 11px; font-weight: 600;
+      padding: 3px 10px; border-radius: 50px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .type-기초  { background: rgba(52,199,89,0.15);  color: #1A8A3A; }
+    .type-숙련  { background: rgba(0,122,255,0.12);  color: var(--blue); }
+    .type-심화  { background: rgba(175,82,222,0.14); color: var(--purple); }
+    .type-최종  { background: rgba(255,59,48,0.12);  color: var(--red); }
+    .proj-meta {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;
+    }
+    .meta-chip {
+      background: rgba(120,120,128,0.12);
+      border-radius: 6px; padding: 4px 10px;
+      font-size: 12px; color: var(--label2);
+    }
+    .proj-desc {
+      font-size: 14px; color: var(--label2); line-height: 1.6; margin-bottom: 10px;
+    }
+    .tech-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tech-chip {
+      background: rgba(0,122,255,0.10);
+      border: 1px solid rgba(0,122,255,0.22);
+      border-radius: 6px; padding: 3px 10px;
+      font-size: 12px; color: var(--blue); font-weight: 500;
+    }
+    .proj-links { display: flex; gap: 8px; margin-top: 12px; }
+    .proj-link {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(120,120,128,0.12);
+      border-radius: 8px; padding: 8px 12px;
+      font-size: 13px; color: var(--blue); font-weight: 500;
+      text-decoration: none;
+    }
+
+    /* ── 편지 ── */
+    .letter-header {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 12px;
+    }
+    .letter-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    }
+    .la-manager { background: linear-gradient(135deg, #FF9500, #FF6B00); }
+    .la-tutor   { background: linear-gradient(135deg, #007AFF, #5E5CE6); }
+    .letter-from { font-size: 15px; font-weight: 600; color: #1C1C1E; margin-bottom: 2px; }
+    .letter-type {
+      font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 4px;
+      display: inline-block;
+    }
+    .lt-manager { background: rgba(255,149,0,0.15); color: #C07000; }
+    .lt-tutor   { background: rgba(0,122,255,0.12); color: var(--blue); }
+    .letter-title { font-size: 16px; font-weight: 600; color: #1C1C1E; margin-bottom: 10px; }
+    .letter-body { font-size: 14px; color: var(--label2); line-height: 1.8; white-space: pre-line; }
+
+    /* ── 학습 통계 ── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(2,1fr);
+      position: relative; z-index: 2;
+    }
+    .stat-cell {
+      padding: 18px 8px; text-align: center;
+      border-right: 0.33px solid var(--sep);
+      border-bottom: 0.33px solid var(--sep);
+    }
+    .stat-cell:nth-child(2n) { border-right: none; }
+    .stat-cell:nth-last-child(-n+2) { border-bottom: none; }
+    .stat-val { font-size: 24px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+    .stat-lbl { font-size: 11px; color: var(--label2); line-height: 1.3; }
+
+    .grade-circle {
+      font-size: 22px; font-weight: 800; line-height: 1;
+      color: var(--orange);
+      margin-bottom: 4px;
+    }
+
+    .achievement-row {
+      border-top: 0.33px solid var(--sep);
+      padding: 14px 18px;
+      display: flex; align-items: center; gap: 10px;
+      position: relative; z-index: 2;
+    }
+    .achievement-icon { font-size: 20px; flex-shrink: 0; }
+    .achievement-text { font-size: 13px; color: var(--label2); line-height: 1.4; font-weight: 500; }
+
+    /* ── TIL / ZEP ── */
+    .til-row {
+      border-top: 0.33px solid var(--sep);
+      padding: 14px 18px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: relative; z-index: 2;
+    }
+    .til-left { display: flex; align-items: center; gap: 10px; }
+    .til-icon { font-size: 20px; flex-shrink: 0; }
+    .til-info { }
+    .til-count { font-size: 22px; font-weight: 800; color: #1C1C1E; line-height: 1; }
+    .til-sub   { font-size: 11px; color: var(--label2); margin-top: 2px; }
+    .til-badge {
+      background: linear-gradient(135deg, #FF9500, #FF6B00);
+      color: #fff; font-size: 11px; font-weight: 700;
+      padding: 5px 12px; border-radius: 50px;
+      box-shadow: 0 2px 8px rgba(255,140,0,0.35);
+    }
+
+    .zep-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      border-top: 0.33px solid var(--sep);
+      position: relative; z-index: 2;
+    }
+    .zep-cell {
+      padding: 16px 8px; text-align: center;
+      border-right: 0.33px solid var(--sep);
+    }
+    .zep-cell:last-child { border-right: none; }
+    .zep-val { font-size: 20px; font-weight: 800; line-height: 1; margin-bottom: 3px; }
+    .zep-lbl { font-size: 11px; color: var(--label2); }
+
+    /* ── 최종 프로젝트 ── */
+    .final-proj-card { padding: 0; overflow: hidden; }
+
+    .final-video-wrap {
+      position: relative; width: 100%;
+      aspect-ratio: 16/9; background: #000;
+      border-radius: 20px 20px 0 0; overflow: hidden;
+    }
+    .final-video-wrap iframe {
+      width: 100%; height: 100%; border: none;
+    }
+    .final-video-placeholder {
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 10px;
+      background: rgba(0,0,0,0.06);
+      cursor: pointer; text-decoration: none;
+    }
+    .final-video-placeholder .play-icon {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: rgba(255,255,255,0.88);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.22);
+      font-size: 24px;
+    }
+    .final-video-label { font-size: 13px; color: var(--label2); font-weight: 500; }
+
+    .final-body { padding: 18px 18px 20px; position: relative; z-index: 2; }
+    .final-name-row {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 10px; margin-bottom: 8px;
+    }
+    .final-name { font-size: 20px; font-weight: 800; color: #1C1C1E; letter-spacing: -0.3px; }
+    .final-links {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 8px; margin: 14px 0;
+    }
+    .final-link {
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      background: rgba(120,120,128,0.10);
+      border: 1px solid rgba(255,255,255,0.70);
+      border-radius: 12px; padding: 12px 6px;
+      text-decoration: none; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .final-link:active { background: rgba(120,120,128,0.20); }
+    .final-link-icon { font-size: 22px; }
+    .final-link-label { font-size: 11px; font-weight: 600; color: var(--blue); }
+
+    /* ── 홈 인디케이터 ── */
+    .home-indicator {
+      display: flex; justify-content: center;
+      padding: 16px 0 36px;
+    }
+    .home-bar {
+      width: 134px; height: 5px; border-radius: 3px;
+      background: rgba(60,60,67,0.26);
+    }
+
+    /* ── 진입 애니메이션 ── */
+    .fade-section {
+      opacity: 0; transform: translateY(16px);
+      transition: opacity 0.45s cubic-bezier(0.26,0.60,0.36,1),
+                  transform 0.45s cubic-bezier(0.26,0.60,0.36,1);
+    }
+    .fade-section.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── 로딩 ── */
+    .loading-screen {
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(237,232,223,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 14px;
+    }
+    .loading-screen.hidden { display: none; }
+    .ios-spinner {
+      width: 36px; height: 36px;
+      border: 3px solid rgba(60,60,67,0.15);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    .loading-text { font-size: 15px; color: var(--label2); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="wallpaper"></div>
+
+<!-- 로딩 -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="ios-spinner"></div>
+  <div class="loading-text">리포트를 불러오는 중...</div>
+</div>
+
+<!-- 상태바 -->
+<div class="status-bar">
+  <div class="sb-time" id="sbTime">9:41</div>
+  <div class="sb-right">
+    <svg width="17" height="12" viewBox="0 0 17 12" fill="none">
+      <rect x="0"    y="7.5" width="3" height="4.5" rx="0.8" fill="#1C1C1E"/>
+      <rect x="4.7"  y="5"   width="3" height="7"   rx="0.8" fill="#1C1C1E"/>
+      <rect x="9.4"  y="2.5" width="3" height="9.5" rx="0.8" fill="#1C1C1E"/>
+      <rect x="14.1" y="0"   width="3" height="12"  rx="0.8" fill="#1C1C1E" opacity="0.28"/>
+    </svg>
+    <svg width="16" height="12" viewBox="0 0 16 12" fill="#1C1C1E">
+      <path opacity="0.28" d="M8 2C5 2 2.2 3.2.3 5.2L1.8 6.7C3.3 5.1 5.5 4.1 8 4.1s4.7 1 6.2 2.6L15.7 5.2C13.8 3.2 11 2 8 2z"/>
+      <path opacity="0.60" d="M8 5.8c-1.8 0-3.4.8-4.5 2L4.9 9.2C5.8 8.5 6.9 8 8 8s2.2.5 3.1 1.2l1.4-1.4C11.4 6.6 9.8 5.8 8 5.8z"/>
+      <circle cx="8" cy="11.2" r="1.6"/>
+    </svg>
+    <svg width="26" height="12" viewBox="0 0 26 12" fill="none">
+      <rect x="0.5" y="1" width="21" height="10" rx="2.5" stroke="#1C1C1E" stroke-width="1.1" opacity="0.35"/>
+      <rect x="1.5" y="2" width="15" height="8" rx="1.8" fill="#1C1C1E"/>
+      <path d="M23 4v4a2 2 0 000-4z" fill="#1C1C1E" opacity="0.38"/>
+    </svg>
+  </div>
+</div>
+
+<div class="screen" id="mainContent" style="display:none;">
+
+  <!-- 네비게이션 바 -->
+  <div class="nav-bar">
+    <a href="index.html" class="nav-back">
+      <svg viewBox="0 0 9 16" fill="none"><path d="M8 1L1.5 8L8 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      홈
+    </a>
+    <div class="nav-title" id="navTitle">Personal Report</div>
+    <div class="nav-right"></div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero fade-section" id="heroSection">
+    <div class="hero-badge">🎓 <span id="heroCohort">iOS 1기</span></div>
+    <div class="hero-avatar">👨‍💻</div>
+    <div class="hero-name" id="heroName">–</div>
+    <div class="hero-track" id="heroTrack">iOS 앱 개발자 양성과정</div>
+    <div class="hero-period" id="heroPeriod">–</div>
+    <div class="hero-quote-wrap" id="heroQuoteWrap" style="display:none;">
+      <div class="hero-quote-label">지원 동기</div>
+      <div class="hero-quote" id="heroQuote"></div>
+    </div>
+  </div>
+
+  <!-- 출석 -->
+  <div class="section fade-section">
+    <div class="section-label">출석 현황</div>
+    <div class="glass-card">
+      <div class="att-top">
+        <div class="donut-wrap">
+          <canvas id="donutChart" width="90" height="90"></canvas>
+          <div class="donut-center">
+            <div class="donut-pct" id="attRate">–</div>
+            <div class="donut-sub">출석률</div>
+          </div>
+        </div>
+        <div class="att-legend">
+          <div class="legend-row">
+            <div class="legend-dot" style="background:var(--green)"></div>
+            <div class="legend-name">출석</div>
+            <div class="legend-val" id="legAtt">–</div>
+          </div>
+          <div class="legend-row">
+            <div class="legend-dot" style="background:var(--red)"></div>
+            <div class="legend-name">결석</div>
+            <div class="legend-val" id="legAbs">–</div>
+          </div>
+        </div>
+      </div>
+      <div class="att-grid">
+        <div class="att-cell">
+          <div class="att-val" id="totalDays">–</div>
+          <div class="att-lbl">총 수업일</div>
+        </div>
+        <div class="att-cell">
+          <div class="att-val" style="color:var(--green)" id="attDays">–</div>
+          <div class="att-lbl">출석</div>
+        </div>
+        <div class="att-cell">
+          <div class="att-val" style="color:var(--red)" id="absDays">–</div>
+          <div class="att-lbl">결석</div>
+        </div>
+        <div class="att-cell">
+          <div class="att-val" style="color:var(--blue)" id="trainingHours">–</div>
+          <div class="att-lbl">훈련 시간 (h)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 프로젝트 -->
+  <div class="section fade-section" id="projectSection" style="display:none;">
+    <div class="section-label">프로젝트</div>
+    <div class="glass-card" id="projectList"></div>
+  </div>
+
+  <!-- 최종 프로젝트 -->
+  <div class="section fade-section" id="finalProjSection" style="display:none;">
+    <div class="section-label">최종 프로젝트</div>
+    <div class="glass-card final-proj-card" id="finalProjCard"></div>
+  </div>
+
+  <!-- 편지 -->
+  <div class="section fade-section">
+    <div class="section-label">편지</div>
+    <div class="glass-card" id="letterList"></div>
+  </div>
+
+  <!-- 학습 통계 -->
+  <div class="section fade-section">
+    <div class="section-label">학습 통계</div>
+    <div class="glass-card">
+      <div class="stats-grid">
+        <div class="stat-cell">
+          <div class="stat-val" style="color:var(--green)" id="assignCompleted">–</div>
+          <div class="stat-lbl">과제 완료 수</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" style="color:var(--blue)" id="assignRate">–</div>
+          <div class="stat-lbl">완성도</div>
+        </div>
+        <div class="stat-cell">
+          <div class="grade-circle" id="gradeVal">–</div>
+          <div class="stat-lbl">성취도</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" style="color:var(--purple)" id="totalCommits">–</div>
+          <div class="stat-lbl">총 커밋</div>
+        </div>
+      </div>
+      <div class="achievement-row" id="achieveRow" style="display:none;">
+        <div class="achievement-icon">🏆</div>
+        <div class="achievement-text" id="achieveText"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIL -->
+  <div class="section fade-section" id="tilSection" style="display:none;">
+    <div class="section-label">TIL</div>
+    <div class="glass-card">
+      <div class="til-row">
+        <div class="til-left">
+          <div class="til-icon">📝</div>
+          <div class="til-info">
+            <div class="til-count" id="tilCount">–</div>
+            <div class="til-sub">작성한 TIL</div>
+          </div>
+        </div>
+        <div id="tilBadge" style="display:none;">
+          <div class="til-badge">⭐ 우수 TIL 선정</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ZEP 활동 -->
+  <div class="section fade-section" id="zepSection" style="display:none;">
+    <div class="section-label">ZEP 활동</div>
+    <div class="glass-card">
+      <div class="zep-grid">
+        <div class="zep-cell">
+          <div class="zep-val" style="color:var(--blue)" id="zepPoints">–</div>
+          <div class="zep-lbl">포인트</div>
+        </div>
+        <div class="zep-cell">
+          <div class="zep-val" style="color:var(--green)" id="zepHours">–</div>
+          <div class="zep-lbl">총 접속 시간</div>
+        </div>
+        <div class="zep-cell">
+          <div class="zep-val" style="color:var(--purple)" id="zepChats">–</div>
+          <div class="zep-lbl">채팅 수</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 홈 인디케이터 -->
+  <div class="home-indicator">
+    <div class="home-bar"></div>
+  </div>
+
+</div>
+
+<!-- 썸네일 모달 -->
+<div class="thumb-modal" id="thumbModal" onclick="closeThumb(event)">
+  <div class="thumb-modal-inner" id="thumbModalInner">
+    <img id="thumbModalImg" src="" alt="발표자료" />
+    <button class="thumb-close" onclick="closeThumbBtn()">✕</button>
+  </div>
+</div>
+
+<script>
+  /* ── 시계 ── */
+  (function tick() {
+    const d = new Date();
+    document.getElementById('sbTime').textContent =
+      String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    setTimeout(tick, (60 - d.getSeconds()) * 1000);
+  })();
+
+  /* ── 데이터 로드 ── */
+  const raw = sessionStorage.getItem('reportData');
+  if (!raw) { window.location.href = 'index.html'; }
+  else { render(JSON.parse(raw)); }
+
+  function render(d) {
+    const { student, attendance, projects, letters, stats } = d;
+
+    /* Hero */
+    document.getElementById('navTitle').textContent = student.name + '님의 리포트';
+    document.getElementById('heroCohort').textContent = 'iOS ' + (student.cohort || '');
+    document.getElementById('heroName').textContent = student.name;
+    document.getElementById('heroTrack').textContent = student.track;
+    document.getElementById('heroPeriod').textContent =
+      (student.startDate || '') + ' – ' + (student.endDate || '');
+    if (student.profileMessage) {
+      document.getElementById('heroQuote').textContent = '"' + student.profileMessage + '"';
+      document.getElementById('heroQuoteWrap').style.display = 'block';
+    }
+
+    /* 출석 */
+    if (attendance) {
+      document.getElementById('attRate').textContent   = attendance.rate;
+      document.getElementById('legAtt').textContent    = attendance.attendedDays + '일';
+      document.getElementById('legAbs').textContent    = attendance.absentDays + '일';
+      document.getElementById('totalDays').textContent  = attendance.totalDays;
+      document.getElementById('attDays').textContent    = attendance.attendedDays;
+      document.getElementById('absDays').textContent    = attendance.absentDays;
+      document.getElementById('trainingHours').textContent = attendance.trainingHours ? attendance.trainingHours + 'h' : '–';
+
+      new Chart(document.getElementById('donutChart'), {
+        type: 'doughnut',
+        data: {
+          datasets: [{
+            data: [attendance.attendedDays, attendance.absentDays],
+            backgroundColor: ['#34C759','#FF3B30'],
+            borderWidth: 0,
+          }],
+        },
+        options: {
+          cutout: '72%',
+          plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          animation: { duration: 700, easing: 'easeInOutQuart' },
+        },
+      });
+    }
+
+    /* 프로젝트 분리: 최종 vs 일반 */
+    const finalProj  = projects?.find(p => p.projectType === '최종');
+    const regularProjs = projects?.filter(p => p.projectType !== '최종') || [];
+
+    /* 일반 프로젝트 */
+    const projList = document.getElementById('projectList');
+    if (regularProjs.length) {
+      document.getElementById('projectSection').style.display = 'block';
+      regularProjs.forEach(p => {
+        const techs = (p.techStack || '').split(',').map(t => t.trim()).filter(Boolean);
+        const el = document.createElement('div');
+        el.className = 'card-row';
+        el.innerHTML = `
+          ${p.thumbnailUrl ? `
+          <div class="proj-thumb" onclick="openThumb('${p.thumbnailUrl}')">
+            <img src="${p.thumbnailUrl}" alt="${p.name} 발표자료" loading="lazy" />
+            <div class="proj-thumb-overlay">
+              <div class="proj-thumb-label">📑 발표자료 보기</div>
+            </div>
+          </div>` : ''}
+          <div class="proj-header">
+            <div class="proj-name">${p.name}</div>
+            <div style="display:flex;gap:6px;flex-shrink:0;">
+              ${p.projectType ? `<div class="type-badge type-${p.projectType}">${p.projectType}</div>` : ''}
+              ${p.award ? `<div class="award-badge">🏆 ${p.award}</div>` : ''}
+            </div>
+          </div>
+          <div class="proj-meta">
+            ${p.role     ? `<div class="meta-chip">👤 ${p.role}</div>` : ''}
+            ${p.period   ? `<div class="meta-chip">📅 ${p.period}</div>` : ''}
+            ${p.teamSize ? `<div class="meta-chip">👥 ${p.teamSize}인</div>` : ''}
+          </div>
+          ${p.description ? `<div class="proj-desc">${p.description}</div>` : ''}
+          <div class="tech-chips">${techs.map(t => `<div class="tech-chip">${t}</div>`).join('')}</div>`;
+        projList.appendChild(el);
+      });
+    }
+
+    /* 최종 프로젝트 */
+    if (finalProj) {
+      document.getElementById('finalProjSection').style.display = 'block';
+      const fp = finalProj;
+      const techs = (fp.techStack || '').split(',').map(t => t.trim()).filter(Boolean);
+
+      // 시연영상: YouTube 자동 embed
+      let videoHTML = '';
+      if (fp.demoVideoUrl) {
+        const ytMatch = fp.demoVideoUrl.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        if (ytMatch) {
+          videoHTML = `<div class="final-video-wrap">
+            <iframe src="https://www.youtube.com/embed/${ytMatch[1]}" allowfullscreen></iframe>
+          </div>`;
+        } else {
+          videoHTML = `<div class="final-video-wrap">
+            <a href="${fp.demoVideoUrl}" target="_blank" class="final-video-placeholder">
+              <div class="play-icon">▶️</div>
+              <div class="final-video-label">시연영상 보기</div>
+            </a>
+          </div>`;
+        }
+      } else if (fp.thumbnailUrl) {
+        videoHTML = `<div class="final-video-wrap" style="cursor:pointer;" onclick="openThumb('${fp.thumbnailUrl}')">
+          <img src="${fp.thumbnailUrl}" style="width:100%;height:100%;object-fit:cover;" />
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.15);">
+            <div class="play-icon" style="width:56px;height:56px;background:rgba(255,255,255,0.85);display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:22px;box-shadow:0 4px 20px rgba(0,0,0,0.2);">📑</div>
+          </div>
+        </div>`;
+      }
+
+      const linksHTML = [
+        fp.githubUrl   ? `<a href="${fp.githubUrl}"   target="_blank" class="final-link"><div class="final-link-icon">🔗</div><div class="final-link-label">GitHub</div></a>` : '',
+        fp.dashboardUrl ? `<a href="${fp.dashboardUrl}" target="_blank" class="final-link"><div class="final-link-icon">📊</div><div class="final-link-label">대시보드</div></a>` : '',
+        fp.appStoreUrl ? `<a href="${fp.appStoreUrl}" target="_blank" class="final-link"><div class="final-link-icon">📱</div><div class="final-link-label">App Store</div></a>` : '',
+        fp.demoVideoUrl ? `<a href="${fp.demoVideoUrl}" target="_blank" class="final-link"><div class="final-link-icon">🎬</div><div class="final-link-label">시연영상</div></a>` : '',
+      ].filter(Boolean);
+
+      document.getElementById('finalProjCard').innerHTML = `
+        ${videoHTML}
+        <div class="final-body">
+          <div class="final-name-row">
+            <div class="final-name">${fp.name}</div>
+            ${fp.award ? `<div class="award-badge">🏆 ${fp.award}</div>` : ''}
+          </div>
+          <div class="proj-meta">
+            ${fp.role     ? `<div class="meta-chip">👤 ${fp.role}</div>` : ''}
+            ${fp.period   ? `<div class="meta-chip">📅 ${fp.period}</div>` : ''}
+            ${fp.teamSize ? `<div class="meta-chip">👥 ${fp.teamSize}인</div>` : ''}
+          </div>
+          ${fp.description ? `<div class="proj-desc" style="margin-top:10px;">${fp.description}</div>` : ''}
+          ${linksHTML.length ? `<div class="final-links">${linksHTML.join('')}</div>` : ''}
+          ${techs.length ? `<div class="tech-chips">${techs.map(t => `<div class="tech-chip">${t}</div>`).join('')}</div>` : ''}
+        </div>`;
+    }
+
+    /* 편지 */
+    const letterList = document.getElementById('letterList');
+    if (letters?.length) {
+      letters.forEach(l => {
+        const mgr = l.type === 'manager';
+        const el = document.createElement('div');
+        el.className = 'card-row';
+        el.innerHTML = `
+          <div class="letter-header">
+            <div class="letter-avatar ${mgr ? 'la-manager' : 'la-tutor'}">${mgr ? '📋' : '👨‍🏫'}</div>
+            <div>
+              <div class="letter-from">${l.from}</div>
+              <span class="letter-type ${mgr ? 'lt-manager' : 'lt-tutor'}">${mgr ? '학습 관리 매니저' : '튜터'}</span>
+            </div>
+          </div>
+          <div class="letter-title">${l.title}</div>
+          <div class="letter-body">${l.content}</div>`;
+        letterList.appendChild(el);
+      });
+    } else {
+      letterList.innerHTML = '<div class="card-row" style="color:var(--label2);font-size:14px;text-align:center;">편지 정보가 없습니다.</div>';
+    }
+
+    /* 통계 */
+    if (stats) {
+      document.getElementById('gradeVal').textContent       = stats.grade || '–';
+      document.getElementById('assignRate').textContent     = stats.assignmentRate || '–';
+      document.getElementById('totalCommits').textContent   = stats.totalCommits ? stats.totalCommits.toLocaleString() : '–';
+      if (stats.assignmentCompleted !== undefined) {
+        const compText = stats.assignmentTotal
+          ? `${stats.assignmentCompleted} / ${stats.assignmentTotal}`
+          : stats.assignmentCompleted;
+        document.getElementById('assignCompleted').textContent = compText;
+      }
+
+      if (stats.specialAchievement) {
+        document.getElementById('achieveText').textContent = stats.specialAchievement;
+        document.getElementById('achieveRow').style.display = 'flex';
+      }
+
+      /* TIL */
+      if (stats.tilCount) {
+        document.getElementById('tilSection').style.display = 'block';
+        document.getElementById('tilCount').textContent = stats.tilCount + '개';
+        if (stats.tilOutstanding) {
+          document.getElementById('tilBadge').style.display = 'block';
+        }
+      }
+
+      /* ZEP */
+      if (stats.zepPoints || stats.zepHours || stats.zepChats) {
+        document.getElementById('zepSection').style.display = 'block';
+        document.getElementById('zepPoints').textContent = stats.zepPoints ? stats.zepPoints.toLocaleString() + 'P' : '–';
+        document.getElementById('zepHours').textContent  = stats.zepHours  || '–';
+        document.getElementById('zepChats').textContent  = stats.zepChats  ? stats.zepChats.toLocaleString() + '개' : '–';
+      }
+    }
+
+    /* 화면 표시 */
+    document.getElementById('loadingScreen').classList.add('hidden');
+    document.getElementById('mainContent').style.display = 'block';
+
+    /* 스크롤 인 애니메이션 */
+    const obs = new IntersectionObserver(entries =>
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      { threshold: 0.08 });
+    document.querySelectorAll('.fade-section').forEach(el => obs.observe(el));
+    setTimeout(() => document.getElementById('heroSection').classList.add('visible'), 60);
+  }
+
+  /* ── 썸네일 모달 ── */
+  function openThumb(url) {
+    const modal = document.getElementById('thumbModal');
+    document.getElementById('thumbModalImg').src = url;
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeThumb(e) {
+    if (e.target === document.getElementById('thumbModal')) {
+      document.getElementById('thumbModal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  }
+  function closeThumbBtn() {
+    document.getElementById('thumbModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+</script>
+</body>
+</html>
