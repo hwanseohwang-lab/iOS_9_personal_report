@@ -804,6 +804,7 @@
             ${p.teamSize ? `<div class="meta-chip">👥 ${p.teamSize}인</div>` : ''}
           </div>
           ${p.description ? `<div class="proj-desc">${p.description}</div>` : ''}
+          ${techs.length ? `<div class="tech-chips">${techs.map(t => `<div class="tech-chip">${t}</div>`).join('')}</div>` : ''}
           ${(p.githubUrl || p.dashboardUrl || p.appStoreUrl || p.demoVideoUrl) ? `
           <div class="proj-links">
             ${p.githubUrl     ? `<a href="${p.githubUrl}"     target="_blank" class="proj-link">🔗 GitHub</a>` : ''}
