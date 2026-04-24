@@ -543,7 +543,7 @@
       attendance: att?{ totalDays:att.total_days, attendedDays:att.attended_days, absentDays:att.absent_days, trainingHours:att.training_hours, rate:att.rate }:null,
       projects:(projs||[]).map(p=>({ name:p.name, description:p.description, role:p.role, techStack:p.tech_stack, period:p.period, githubUrl:p.github_url, dashboardUrl:p.dashboard_url, appStoreUrl:p.app_store_url, demoVideoUrl:p.demo_video_url, teamSize:p.team_size, award:p.award, thumbnailUrl:p.thumbnail_url, projectType:p.project_type||'기초' })),
       letters:(lets||[]).map(l=>({ type:l.type, from:l.from_name, title:l.title, content:l.content })),
-      stats:sts?{ assignmentTotal:sts.assignment_total, assignmentCompleted:sts.assignment_completed, assignmentRate:sts.assignment_rate, grade:sts.grade, specialAchievement:sts.special_achievement, totalCommits:sts.total_commits, tilCount:sts.til_count, tilOutstanding:sts.til_outstanding, zepPoints:sts.zep_points, zepHours:sts.zep_hours, zepChats:sts.zep_chats }:null,
+      stats:sts?{ assignmentTotal:sts.assignment_total, assignmentCompleted:sts.assignment_completed, assignmentRate:sts.assignment_rate, grade:sts.grade, specialAchievement:sts.special_achievement, totalCommits:sts.total_commits, tilCount:sts.til_count, tilOutstanding:sts.til_outstanding, zepPoints:sts.zep_points, zepHours:sts.zep_hours, zepChats:sts.zep_chats, chapterAchievement:sts.chapter_achievement, chapterAssignment:sts.chapter_assignment }:null,
       awards:(awds||[]).map(a=>({ name:a.name, description:a.description, imageUrl:a.image_url })),
     };
   }
