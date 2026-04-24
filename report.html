@@ -172,14 +172,14 @@
       position: relative; overflow: hidden;
       border-radius: 20px;
 
-      background: rgba(255,255,255,0.52);
+      background: rgba(255,255,255,0.62);
       backdrop-filter: blur(48px) saturate(200%) brightness(1.04);
       -webkit-backdrop-filter: blur(48px) saturate(200%) brightness(1.04);
 
-      border: 1px solid rgba(255,255,255,0.82);
+      border: 1px solid rgba(255,255,255,0.88);
       border-top-color:    rgba(255,255,255,1.00);
-      border-left-color:   rgba(255,255,255,0.90);
-      border-bottom-color: rgba(255,255,255,0.42);
+      border-left-color:   rgba(255,255,255,0.95);
+      border-bottom-color: rgba(255,255,255,0.55);
 
       box-shadow:
         0 2px 48px rgba(0,0,0,0.10),
@@ -364,8 +364,33 @@
     }
     .lt-manager { background: rgba(255,149,0,0.15); color: #C07000; }
     .lt-tutor   { background: rgba(0,122,255,0.12); color: var(--blue); }
-    .letter-title { font-size: 16px; font-weight: 600; color: #1C1C1E; margin-bottom: 10px; }
-    .letter-body { font-size: 14px; color: var(--label2); line-height: 1.8; white-space: pre-line; }
+    .letter-title { font-size: 15px; font-weight: 600; color: #1C1C1E; }
+    .letter-preview { font-size: 13px; color: var(--label2); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .letter-chevron { color: var(--label3); font-size: 14px; flex-shrink: 0; margin-left: auto; }
+    .card-row.clickable { cursor: pointer; transition: background 0.15s; }
+    .card-row.clickable:active { background: rgba(0,0,0,0.04); }
+
+    /* ── 상장 ── */
+    .award-row {
+      display: flex; align-items: center; gap: 14px;
+      position: relative; z-index: 2;
+      padding: 14px 18px;
+    }
+    .award-row + .award-row::before {
+      content: ''; position: absolute; top: 0; left: 18px; right: 0;
+      height: 0.33px; background: var(--sep);
+    }
+    .award-medal { font-size: 28px; flex-shrink: 0; }
+    .award-info { flex: 1; }
+    .award-name { font-size: 15px; font-weight: 700; color: #1C1C1E; margin-bottom: 3px; }
+    .award-desc { font-size: 13px; color: var(--label2); line-height: 1.5; }
+    .award-img-btn {
+      width: 48px; height: 48px; border-radius: 10px; overflow: hidden;
+      flex-shrink: 0; cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.7);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    .award-img-btn img { width: 100%; height: 100%; object-fit: cover; }
 
     /* ── 학습 통계 ── */
     .stats-grid {
@@ -639,11 +664,39 @@
     <div class="glass-card" id="letterList"></div>
   </div>
 
+  <!-- 상장 -->
+  <div class="section fade-section" id="awardsSection" style="display:none;">
+    <div class="section-label">수상 내역</div>
+    <div class="glass-card" id="awardsList"></div>
+  </div>
+
   <!-- 학습 통계 -->
   <div class="section fade-section">
     <div class="section-label">학습 통계</div>
     <div class="glass-card">
-      <div class="stats-grid">
+      <!-- 과제 완료율 차트 -->
+      <div class="att-top" id="assignChartRow" style="display:none;">
+        <div class="donut-wrap">
+          <canvas id="assignDonut" width="90" height="90"></canvas>
+          <div class="donut-center">
+            <div class="donut-pct" id="assignRateChart">–</div>
+            <div class="donut-sub">완성도</div>
+          </div>
+        </div>
+        <div class="att-legend">
+          <div class="legend-row">
+            <div class="legend-dot" style="background:var(--blue)"></div>
+            <div class="legend-name">완료</div>
+            <div class="legend-val" id="assignCompLegend">–</div>
+          </div>
+          <div class="legend-row">
+            <div class="legend-dot" style="background:var(--label3)"></div>
+            <div class="legend-name">미완료</div>
+            <div class="legend-val" id="assignRemLegend">–</div>
+          </div>
+        </div>
+      </div>
+      <div class="stats-grid" style="border-top: 0.33px solid var(--sep);">
         <div class="stat-cell">
           <div class="stat-val" style="color:var(--green)" id="assignCompleted">–</div>
           <div class="stat-lbl">과제 완료 수</div>
@@ -863,27 +916,50 @@
         </div>`;
     }
 
-    /* 편지 */
+    /* 편지 — 미리보기 카드 */
     const letterList = document.getElementById('letterList');
     if (letters?.length) {
-      letters.forEach(l => {
+      letters.forEach((l, idx) => {
         const mgr = l.type === 'manager';
         const el = document.createElement('div');
-        el.className = 'card-row';
+        el.className = 'card-row clickable';
         el.innerHTML = `
-          <div class="letter-header">
+          <div class="letter-header" style="margin-bottom:6px;">
             <div class="letter-avatar ${mgr ? 'la-manager' : 'la-tutor'}">${mgr ? '📋' : '👨‍🏫'}</div>
-            <div>
+            <div style="flex:1;">
               <div class="letter-from">${l.from}</div>
               <span class="letter-type ${mgr ? 'lt-manager' : 'lt-tutor'}">${mgr ? '학습 관리 매니저' : '튜터'}</span>
             </div>
+            <div class="letter-chevron">›</div>
           </div>
           <div class="letter-title">${l.title}</div>
-          <div class="letter-body">${l.content}</div>`;
+          <div class="letter-preview">${l.content.replace(/\n/g,' ')}</div>`;
+        el.addEventListener('click', () => {
+          sessionStorage.setItem('letterData', JSON.stringify(l));
+          window.location.href = 'letter.html';
+        });
         letterList.appendChild(el);
       });
     } else {
       letterList.innerHTML = '<div class="card-row" style="color:var(--label2);font-size:14px;text-align:center;">편지 정보가 없습니다.</div>';
+    }
+
+    /* 상장 */
+    const awardsList = document.getElementById('awardsList');
+    if (d.awards?.length) {
+      document.getElementById('awardsSection').style.display = 'block';
+      d.awards.forEach(a => {
+        const el = document.createElement('div');
+        el.className = 'award-row';
+        el.innerHTML = `
+          <div class="award-medal">🏅</div>
+          <div class="award-info">
+            <div class="award-name">${a.name}</div>
+            ${a.description ? `<div class="award-desc">${a.description}</div>` : ''}
+          </div>
+          ${a.imageUrl ? `<div class="award-img-btn" onclick="openThumb('${a.imageUrl}')"><img src="${a.imageUrl}" /></div>` : ''}`;
+        awardsList.appendChild(el);
+      });
     }
 
     /* 통계 */
@@ -896,6 +972,21 @@
           ? `${stats.assignmentCompleted} / ${stats.assignmentTotal}`
           : stats.assignmentCompleted;
         document.getElementById('assignCompleted').textContent = compText;
+
+        if (stats.assignmentTotal) {
+          const rem = stats.assignmentTotal - stats.assignmentCompleted;
+          document.getElementById('assignChartRow').style.display = 'flex';
+          document.getElementById('assignRateChart').textContent = stats.assignmentRate || '';
+          document.getElementById('assignCompLegend').textContent = stats.assignmentCompleted + '개';
+          document.getElementById('assignRemLegend').textContent = rem + '개';
+          new Chart(document.getElementById('assignDonut'), {
+            type: 'doughnut',
+            data: { datasets: [{ data: [stats.assignmentCompleted, rem],
+              backgroundColor: ['#007AFF', 'rgba(60,60,67,0.12)'], borderWidth: 0 }] },
+            options: { cutout:'72%', plugins:{ legend:{display:false}, tooltip:{enabled:false} },
+              animation:{ duration:700, easing:'easeInOutQuart' } },
+          });
+        }
       }
 
       if (stats.specialAchievement) {
