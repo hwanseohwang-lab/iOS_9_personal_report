@@ -696,24 +696,19 @@
           </div>
         </div>
       </div>
-      <div class="stats-grid" style="border-top: 0.33px solid var(--sep);">
-        <div class="stat-cell">
-          <div class="stat-val" style="color:var(--green)" id="assignCompleted">–</div>
+      <div class="stats-grid" style="border-top: 0.33px solid var(--sep); grid-template-columns: repeat(2,1fr);">
+        <div class="stat-cell" style="border-bottom:none;">
+          <div class="stat-val" style="color:#1C1C1E" id="assignCompleted">–</div>
           <div class="stat-lbl">과제 완료 수</div>
         </div>
-        <div class="stat-cell">
-          <div class="stat-val" style="color:var(--blue)" id="assignRate">–</div>
-          <div class="stat-lbl">완성도</div>
-        </div>
-        <div class="stat-cell">
-          <div class="grade-circle" id="gradeVal">–</div>
-          <div class="stat-lbl">성취도</div>
-        </div>
-        <div class="stat-cell">
+        <div class="stat-cell" style="border-bottom:none;">
           <div class="stat-val" style="color:var(--purple)" id="totalCommits">–</div>
           <div class="stat-lbl">총 커밋</div>
         </div>
       </div>
+      <!-- hidden elements to avoid JS errors -->
+      <div style="display:none;" id="assignRate"></div>
+      <div style="display:none;" id="gradeVal"></div>
       <!-- 챕터별 추이 차트 -->
       <div class="commit-row" id="chapterChartRow" style="display:none; border-top: 0.33px solid var(--sep); padding: 18px 18px 20px; position:relative; z-index:2;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
@@ -729,28 +724,28 @@
         </div>
         <canvas id="chapterChart" height="100"></canvas>
       </div>
+      <!-- TIL 잔디 -->
+      <div id="tilGrassRow" style="display:none; border-top:0.33px solid var(--sep); padding:16px 18px 18px; position:relative; z-index:2;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div style="font-size:14px; font-weight:600; color:#1C1C1E;">TIL 제출 현황</div>
+            <div id="tilBadge" style="display:none;"><div class="til-badge">⭐ 우수 TIL</div></div>
+          </div>
+          <div style="font-size:13px; font-weight:600; color:var(--green);" id="tilCount">–</div>
+        </div>
+        <div id="tilGrass" style="overflow-x:auto; padding-bottom:4px;"></div>
+        <div style="display:flex; align-items:center; justify-content:flex-end; gap:6px; margin-top:8px;">
+          <span style="font-size:10px; color:var(--label3);">적음</span>
+          <div style="width:10px;height:10px;border-radius:2px;background:rgba(52,199,89,0.12);"></div>
+          <div style="width:10px;height:10px;border-radius:2px;background:rgba(52,199,89,0.40);"></div>
+          <div style="width:10px;height:10px;border-radius:2px;background:rgba(52,199,89,0.70);"></div>
+          <div style="width:10px;height:10px;border-radius:2px;background:#34C759;"></div>
+          <span style="font-size:10px; color:var(--label3);">많음</span>
+        </div>
+      </div>
       <div class="achievement-row" id="achieveRow" style="display:none;">
         <div class="achievement-icon">🏆</div>
         <div class="achievement-text" id="achieveText"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TIL -->
-  <div class="section fade-section" id="tilSection" style="display:none;">
-    <div class="section-label">TIL</div>
-    <div class="glass-card">
-      <div class="til-row">
-        <div class="til-left">
-          <div class="til-icon">📝</div>
-          <div class="til-info">
-            <div class="til-count" id="tilCount">–</div>
-            <div class="til-sub">작성한 TIL</div>
-          </div>
-        </div>
-        <div id="tilBadge" style="display:none;">
-          <div class="til-badge">⭐ 우수 TIL 선정</div>
-        </div>
       </div>
     </div>
   </div>
@@ -1065,12 +1060,71 @@
         });
       }
 
-      /* TIL */
-      if (stats.tilCount) {
-        document.getElementById('tilSection').style.display = 'block';
-        document.getElementById('tilCount').textContent = stats.tilCount + '개';
-        if (stats.tilOutstanding) {
-          document.getElementById('tilBadge').style.display = 'block';
+      /* TIL 잔디 */
+      if (stats.tilDates || stats.tilCount) {
+        document.getElementById('tilGrassRow').style.display = 'block';
+        document.getElementById('tilCount').textContent = (stats.tilCount || 0) + '개';
+        if (stats.tilOutstanding) document.getElementById('tilBadge').style.display = 'block';
+
+        if (stats.tilDates && student.startDate && student.endDate) {
+          const submitted = new Set(stats.tilDates.split(',').map(s => s.trim()));
+          const start = new Date(student.startDate);
+          const end   = new Date(student.endDate);
+
+          // 시작 월요일로 맞추기
+          const gridStart = new Date(start);
+          gridStart.setDate(gridStart.getDate() - gridStart.getDay() + 1);
+
+          const weeks = [];
+          const cur = new Date(gridStart);
+          while (cur <= end) {
+            const week = [];
+            for (let d = 0; d < 7; d++) {
+              const dateStr = cur.toISOString().slice(0,10);
+              const inRange = cur >= start && cur <= end;
+              const isWeekend = cur.getDay() === 0 || cur.getDay() === 6;
+              const hasTil = submitted.has(dateStr);
+              week.push({ dateStr, inRange, isWeekend, hasTil });
+              cur.setDate(cur.getDate() + 1);
+            }
+            weeks.push(week);
+          }
+
+          const dayLabels = ['월','화','수','목','금','토','일'];
+          const container = document.getElementById('tilGrass');
+          const grid = document.createElement('div');
+          grid.style.cssText = 'display:flex; gap:3px; align-items:flex-start;';
+
+          // 요일 라벨
+          const labelCol = document.createElement('div');
+          labelCol.style.cssText = 'display:flex; flex-direction:column; gap:3px; padding-top:0px;';
+          [0,1,2,3,4,5,6].forEach(i => {
+            const lbl = document.createElement('div');
+            lbl.style.cssText = `height:11px; font-size:9px; color:var(--label3); line-height:11px; width:14px; text-align:right; padding-right:2px;`;
+            lbl.textContent = dayLabels[i];
+            labelCol.appendChild(lbl);
+          });
+          grid.appendChild(labelCol);
+
+          weeks.forEach(week => {
+            const col = document.createElement('div');
+            col.style.cssText = 'display:flex; flex-direction:column; gap:3px;';
+            week.forEach(day => {
+              const cell = document.createElement('div');
+              cell.style.cssText = 'width:11px; height:11px; border-radius:2px;';
+              if (!day.inRange || day.isWeekend) {
+                cell.style.background = 'rgba(60,60,67,0.06)';
+              } else if (day.hasTil) {
+                cell.style.background = '#34C759';
+              } else {
+                cell.style.background = 'rgba(52,199,89,0.12)';
+              }
+              cell.title = day.dateStr + (day.hasTil ? ' ✅' : '');
+              col.appendChild(cell);
+            });
+            grid.appendChild(col);
+          });
+          container.appendChild(grid);
         }
       }
 
