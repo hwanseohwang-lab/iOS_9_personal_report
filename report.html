@@ -975,6 +975,11 @@
         const el = document.createElement('div');
         el.className = 'card-row';
         el.innerHTML = `
+          ${p.thumbnailUrl ? `
+          <div class="proj-thumb" onclick="openThumb('${p.thumbnailUrl}')">
+            <img src="${p.thumbnailUrl}" alt="${p.name}" loading="lazy" />
+            <div class="proj-thumb-overlay"><div class="proj-thumb-label">🖼 크게 보기</div></div>
+          </div>` : ''}
           <div class="proj-header">
             <div class="proj-name">${p.name}</div>
             <div style="display:flex;gap:6px;flex-shrink:0;">
@@ -1014,6 +1019,11 @@
 
       document.getElementById('finalProjCard').innerHTML = `
         <div class="card-row">
+          ${fp.thumbnailUrl ? `
+          <div class="proj-thumb" onclick="openThumb('${fp.thumbnailUrl}')">
+            <img src="${fp.thumbnailUrl}" alt="${fp.name}" loading="lazy" />
+            <div class="proj-thumb-overlay"><div class="proj-thumb-label">🖼 크게 보기</div></div>
+          </div>` : ''}
           <div class="proj-header">
             <div class="proj-name">${fp.name}</div>
             <div style="display:flex;gap:6px;flex-shrink:0;">
