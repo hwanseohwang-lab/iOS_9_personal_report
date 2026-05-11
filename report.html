@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Personal Report</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     * {
       margin: 0; padding: 0; box-sizing: border-box;
@@ -569,6 +571,25 @@
       font-size: 13px; font-weight: 600; color: var(--blue);
       cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
+
+    /* ── PDF 캡처 모드 ── */
+    body.pdf-capture .wallpaper { position: absolute !important; }
+    body.pdf-capture .screen    { position: relative !important; }
+    body.pdf-capture .nav-bar   { position: relative !important; top: auto !important;
+      background: rgba(255,255,255,0.88) !important;
+      backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+    body.pdf-capture .glass-card {
+      background: rgba(255,255,255,0.88) !important;
+      backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+    }
+    body.pdf-capture .hero-badge, body.pdf-capture .hero-quote {
+      backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+      background: rgba(255,255,255,0.75) !important;
+    }
+    body.pdf-capture .letter-preview, body.pdf-capture .letter-chevron { display: none !important; }
+    body.pdf-capture .letter-full-content { display: block !important; }
+    body.pdf-capture .pdf-btn { display: none !important; }
+    body.pdf-capture .thumb-modal { display: none !important; }
 
     /* ── 인쇄 전용 스타일 ── */
     @media print {
@@ -1173,7 +1194,9 @@
         const labels = ['Swift 기초','Swift 심화','기초','숙련','심화','최종'];
         const aData = stats.chapterAchievement ? stats.chapterAchievement.split(',').map(Number) : [];
         const bData = stats.chapterAssignment  ? stats.chapterAssignment.split(',').map(Number)  : [];
-        const cData = stats.chapterProject     ? stats.chapterProject.split(',').map(Number)     : [];
+        // 프로젝트 완성도는 기초~최종(4개)이므로 앞에 null 2개 패딩
+        const cRaw  = stats.chapterProject ? stats.chapterProject.split(',').map(Number) : [];
+        const cData = cRaw.length ? [null, null, ...cRaw] : [];
         const ctx = document.getElementById('chapterChart').getContext('2d');
 
         const blueGrad = ctx.createLinearGradient(0, 0, 0, 200);
@@ -1327,12 +1350,53 @@
   }
 
   /* ── PDF 다운로드 ── */
-  function downloadPDF() {
-    const name = document.getElementById('heroName')?.textContent || 'Personal Report';
-    const originalTitle = document.title;
-    document.title = name + ' - Personal Report';
-    window.print();
-    document.title = originalTitle;
+  async function downloadPDF() {
+    const btn = document.querySelector('.pdf-btn');
+    btn.innerHTML = '⏳ 생성중...';
+    btn.style.pointerEvents = 'none';
+
+    // PDF 캡처 모드 진입
+    document.body.classList.add('pdf-capture');
+    await new Promise(r => setTimeout(r, 400)); // 렌더링 대기
+
+    try {
+      const el = document.getElementById('mainContent');
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        backgroundColor: null,
+        scrollX: 0,
+        scrollY: 0,
+        width: el.scrollWidth,
+        height: el.scrollHeight,
+        windowWidth: el.scrollWidth,
+        windowHeight: el.scrollHeight,
+      });
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pdfW = pdf.internal.pageSize.getWidth();
+      const pdfH = pdf.internal.pageSize.getHeight();
+      const imgH = (canvas.height / canvas.width) * pdfW;
+      const pages = Math.ceil(imgH / pdfH);
+      const imgData = canvas.toDataURL('image/jpeg', 0.92);
+
+      for (let i = 0; i < pages; i++) {
+        if (i > 0) pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, -i * pdfH, pdfW, imgH);
+      }
+
+      const name = document.getElementById('heroName')?.textContent || 'Personal Report';
+      pdf.save(name + ' - Personal Report.pdf');
+    } catch (e) {
+      alert('PDF 생성 중 오류가 발생했습니다.');
+    } finally {
+      document.body.classList.remove('pdf-capture');
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> PDF`;
+      btn.style.pointerEvents = '';
+    }
   }
 
   /* ── 썸네일 모달 ── */
