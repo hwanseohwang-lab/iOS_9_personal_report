@@ -1146,8 +1146,10 @@
 
       /* 단계별 커밋 영역 차트 */
       if (stats.phaseCommits) {
-        const pData = stats.phaseCommits.split(',').map(Number);
-        const total = pData.reduce((a, b) => a + b, 0);
+        const allVals = stats.phaseCommits.split(',').map(Number);
+        // 마지막 값 = 총 커밋수, 나머지 = 단계별 데이터
+        const total = allVals[allVals.length - 1];
+        const pData = allVals.slice(0, -1);
         document.getElementById('phaseCommitRow').style.display = 'block';
         document.getElementById('totalCommitsLabel').textContent = '총 ' + total.toLocaleString() + '커밋';
         document.getElementById('totalCommits').textContent = total.toLocaleString();
