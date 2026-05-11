@@ -709,42 +709,40 @@
       <!-- hidden elements to avoid JS errors -->
       <div style="display:none;" id="assignRate"></div>
       <div style="display:none;" id="gradeVal"></div>
-      <!-- 챕터 차트 + TIL 잔디 나란히 -->
+      <!-- 챕터 차트 (위) + TIL 잔디 (아래) -->
       <div id="chartTilRow" style="display:none; border-top:0.33px solid var(--sep); position:relative; z-index:2;">
-        <div style="display:flex; gap:0;">
-          <!-- 좌: 챕터 차트 -->
-          <div id="chapterChartRow" style="flex:1; padding:16px 12px 16px 18px; border-right:0.33px solid var(--sep); min-width:0;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:4px;">
-              <div style="font-size:12px; font-weight:600; color:#1C1C1E;">학습 추이</div>
-              <div style="display:flex; gap:8px; align-items:center;">
-                <div style="display:flex; align-items:center; gap:4px; font-size:10px; color:var(--label2);">
-                  <div style="width:8px;height:2px;border-radius:1px;background:var(--blue);"></div>성취도
-                </div>
-                <div style="display:flex; align-items:center; gap:4px; font-size:10px; color:var(--label2);">
-                  <div style="width:8px;height:2px;border-radius:1px;background:var(--green);"></div>완성도
-                </div>
+        <!-- 챕터 차트 -->
+        <div id="chapterChartRow" style="padding:16px 18px 16px 18px; border-bottom:0.33px solid var(--sep);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="font-size:14px; font-weight:600; color:#1C1C1E;">챕터별 학습 추이</div>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <div style="display:flex; align-items:center; gap:5px; font-size:11px; color:var(--label2);">
+                <div style="width:10px;height:3px;border-radius:2px;background:var(--blue);"></div>성취도
+              </div>
+              <div style="display:flex; align-items:center; gap:5px; font-size:11px; color:var(--label2);">
+                <div style="width:10px;height:3px;border-radius:2px;background:var(--green);"></div>완성도
               </div>
             </div>
-            <canvas id="chapterChart" height="120"></canvas>
           </div>
-          <!-- 우: TIL 잔디 -->
-          <div id="tilGrassRow" style="flex:1; padding:16px 18px 16px 12px; min-width:0;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-              <div style="font-size:12px; font-weight:600; color:#1C1C1E;">TIL 잔디</div>
-              <div style="display:flex; align-items:center; gap:5px;">
-                <div id="tilBadge" style="display:none;"><div class="til-badge" style="font-size:10px; padding:3px 8px;">⭐ 우수</div></div>
-                <div style="font-size:12px; font-weight:600; color:var(--green);" id="tilCount">–</div>
-              </div>
+          <canvas id="chapterChart" height="100"></canvas>
+        </div>
+        <!-- TIL 잔디 -->
+        <div id="tilGrassRow" style="padding:16px 18px 18px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="font-size:14px; font-weight:600; color:#1C1C1E;">TIL 제출 현황</div>
+              <div id="tilBadge" style="display:none;"><div class="til-badge">⭐ 우수 TIL</div></div>
             </div>
-            <div id="tilGrass" style="overflow-x:auto; overflow-y:hidden;"></div>
-            <div style="display:flex; align-items:center; gap:4px; margin-top:8px; flex-wrap:wrap;">
-              <div style="width:8px;height:8px;border-radius:1px;background:rgba(52,199,89,0.12);"></div>
-              <span style="font-size:9px; color:var(--label3);">미제출</span>
-              <div style="width:8px;height:8px;border-radius:1px;background:#34C759; margin-left:3px;"></div>
-              <span style="font-size:9px; color:var(--label3);">제출</span>
-              <div style="width:8px;height:8px;border-radius:1px;background:#FF3B30; margin-left:3px;"></div>
-              <span style="font-size:9px; color:var(--label3);">우수</span>
-            </div>
+            <div style="font-size:13px; font-weight:600; color:var(--green);" id="tilCount">–</div>
+          </div>
+          <div id="tilGrass" style="overflow-x:auto; padding-bottom:4px;"></div>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:10px; flex-wrap:wrap;">
+            <div style="width:11px;height:11px;border-radius:2px;background:rgba(52,199,89,0.12);"></div>
+            <span style="font-size:10px; color:var(--label3);">미제출</span>
+            <div style="width:11px;height:11px;border-radius:2px;background:#34C759; margin-left:4px;"></div>
+            <span style="font-size:10px; color:var(--label3);">제출</span>
+            <div style="width:11px;height:11px;border-radius:2px;background:#FF3B30; margin-left:4px;"></div>
+            <span style="font-size:10px; color:var(--label3);">우수 TIL</span>
           </div>
         </div>
       </div>
@@ -1052,8 +1050,9 @@
         if (stats.tilOutstanding) document.getElementById('tilBadge').style.display = 'block';
 
         if (stats.tilDates && student.startDate && student.endDate) {
-          const submitted    = new Set(stats.tilDates.split(',').map(s => s.trim()));
-          const outstanding  = new Set((stats.tilOutstandingDates || '').split(',').map(s => s.trim()).filter(Boolean));
+          const normalize = s => s.trim().replace(/\./g, '-');
+          const submitted    = new Set(stats.tilDates.split(',').map(normalize));
+          const outstanding  = new Set((stats.tilOutstandingDates || '').split(',').map(normalize).filter(Boolean));
           const start = new Date(student.startDate);
           const end   = new Date(student.endDate);
 
@@ -1081,14 +1080,14 @@
           const dayLabels = ['월','화','수','목','금'];
           const container = document.getElementById('tilGrass');
           const grid = document.createElement('div');
-          grid.style.cssText = 'display:flex; gap:2px; align-items:flex-start;';
+          grid.style.cssText = 'display:flex; gap:3px; align-items:flex-start;';
 
           // 요일 라벨
           const labelCol = document.createElement('div');
           labelCol.style.cssText = 'display:flex; flex-direction:column; gap:3px;';
           dayLabels.forEach(lbl => {
             const el = document.createElement('div');
-            el.style.cssText = 'height:9px; font-size:8px; color:var(--label3); line-height:9px; width:12px; text-align:right; padding-right:2px;';
+            el.style.cssText = 'height:11px; font-size:9px; color:var(--label3); line-height:11px; width:14px; text-align:right; padding-right:2px;';
             el.textContent = lbl;
             labelCol.appendChild(el);
           });
@@ -1096,10 +1095,10 @@
 
           weeks.forEach(week => {
             const col = document.createElement('div');
-            col.style.cssText = 'display:flex; flex-direction:column; gap:2px;';
+            col.style.cssText = 'display:flex; flex-direction:column; gap:3px;';
             week.forEach(day => {
               const cell = document.createElement('div');
-              cell.style.cssText = 'width:9px; height:9px; border-radius:1px;';
+              cell.style.cssText = 'width:11px; height:11px; border-radius:2px;';
               if (!day.inRange) {
                 cell.style.background = 'rgba(60,60,67,0.06)';
               } else if (day.isOutstanding) {
