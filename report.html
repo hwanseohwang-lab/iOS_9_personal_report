@@ -1206,9 +1206,10 @@
         const labels = ['Swift 기초','Swift 심화','기초','숙련','심화','최종'];
         const aData = stats.chapterAchievement ? stats.chapterAchievement.split(',').map(Number) : [];
         const bData = stats.chapterAssignment  ? stats.chapterAssignment.split(',').map(Number)  : [];
-        // 프로젝트 완성도는 기초~최종(4개)이므로 앞에 null 2개 패딩
+        // 프로젝트 완성도: 전체 6칸 중 뒤에서부터 채움 (기초~최종 = 뒤 4칸)
         const cRaw  = stats.chapterProject ? stats.chapterProject.split(',').map(Number) : [];
-        const cData = cRaw.length ? [null, null, ...cRaw] : [];
+        const cPad  = 6 - cRaw.length; // 앞에 null로 채울 개수
+        const cData = cRaw.length ? [...Array(cPad).fill(null), ...cRaw] : [];
         const ctx = document.getElementById('chapterChart').getContext('2d');
 
         const blueGrad = ctx.createLinearGradient(0, 0, 0, 200);
