@@ -791,60 +791,59 @@
           <div class="stat-lbl">총 커밋</div>
         </div>
       </div>
-      <!-- 프로젝트 완성도 -->
-      <div id="projRateRow" style="display:none; border-top:0.33px solid var(--sep); padding:16px 18px 18px; position:relative; z-index:2;">
-        <div style="font-size:14px; font-weight:600; color:#1C1C1E; margin-bottom:14px;">프로젝트 완성도</div>
-        <div id="projRateList"></div>
-      </div>
       <!-- hidden elements to avoid JS errors -->
       <div style="display:none;" id="assignRate"></div>
       <div style="display:none;" id="gradeVal"></div>
-      <!-- 단계별 커밋 차트 -->
-      <div id="phaseCommitRow" style="display:none; border-top:0.33px solid var(--sep); padding:16px 18px 18px; position:relative; z-index:2;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-          <div style="font-size:14px; font-weight:600; color:#1C1C1E;">단계별 커밋 현황</div>
-          <div style="font-size:13px; font-weight:700; color:var(--purple);">총 <span id="totalCommitsLabel">–</span></div>
-        </div>
-        <canvas id="phaseCommitChart" height="140"></canvas>
-      </div>
+      <!-- 좌: 영역그래프 / 우: 커밋+TIL -->
+      <div id="statsVizRow" style="display:none; border-top:0.33px solid var(--sep); position:relative; z-index:2; min-height:0;">
 
-      <!-- 챕터 차트 (위) + TIL 잔디 (아래) -->
-      <div id="chartTilRow" style="display:none; border-top:0.33px solid var(--sep); position:relative; z-index:2;">
-        <!-- 챕터 차트 -->
-        <div id="chapterChartRow" style="padding:16px 18px 16px 18px; border-bottom:0.33px solid var(--sep);">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <div style="font-size:14px; font-weight:600; color:#1C1C1E;">챕터별 학습 추이</div>
-            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-              <div style="display:flex; align-items:center; gap:4px; font-size:11px; color:var(--label2);">
-                <div style="width:10px;height:3px;border-radius:2px;background:var(--blue);"></div>성취도
-              </div>
-              <div style="display:flex; align-items:center; gap:4px; font-size:11px; color:var(--label2);">
-                <div style="width:10px;height:3px;border-radius:2px;background:var(--green);"></div>과제
-              </div>
-              <div style="display:flex; align-items:center; gap:4px; font-size:11px; color:var(--label2);">
-                <div style="width:10px;height:3px;border-radius:2px;background:var(--orange);"></div>프로젝트
-              </div>
+        <!-- 좌: 챕터 영역 그래프 -->
+        <div style="flex:1; border-right:0.33px solid var(--sep); padding:14px 10px 14px 16px; min-width:0; display:flex; flex-direction:column;">
+          <div style="font-size:11px; font-weight:600; color:#1C1C1E; margin-bottom:8px;">학습 추이</div>
+          <div style="display:flex; gap:6px; align-items:center; margin-bottom:10px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:3px; font-size:9px; color:var(--label2);">
+              <div style="width:8px;height:2px;border-radius:1px;background:var(--blue);"></div>성취도
+            </div>
+            <div style="display:flex; align-items:center; gap:3px; font-size:9px; color:var(--label2);">
+              <div style="width:8px;height:2px;border-radius:1px;background:var(--green);"></div>과제
+            </div>
+            <div style="display:flex; align-items:center; gap:3px; font-size:9px; color:var(--label2);">
+              <div style="width:8px;height:2px;border-radius:1px;background:var(--orange);"></div>프로젝트
             </div>
           </div>
-          <canvas id="chapterChart" height="100"></canvas>
+          <canvas id="chapterChart" style="flex:1;"></canvas>
         </div>
-        <!-- TIL 잔디 -->
-        <div id="tilGrassRow" style="padding:16px 18px 18px 18px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <div style="font-size:14px; font-weight:600; color:#1C1C1E;">TIL 제출 현황</div>
-              <div id="tilBadge" style="display:none;"><div class="til-badge">⭐ 우수 TIL</div></div>
+
+        <!-- 우: 커밋 + TIL -->
+        <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+
+          <!-- 우상: 커밋 영역 그래프 -->
+          <div id="phaseCommitRow" style="display:none; border-bottom:0.33px solid var(--sep); padding:14px 16px 12px 10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <div style="font-size:11px; font-weight:600; color:#1C1C1E;">단계별 커밋</div>
+              <div style="font-size:11px; font-weight:700; color:var(--purple);" id="totalCommitsLabel">–</div>
             </div>
-            <div style="font-size:13px; font-weight:600; color:var(--green);" id="tilCount">–</div>
+            <canvas id="phaseCommitChart" height="90"></canvas>
           </div>
-          <div id="tilGrass" style="overflow-x:auto; padding-bottom:4px;"></div>
-          <div style="display:flex; align-items:center; gap:6px; margin-top:10px; flex-wrap:wrap;">
-            <div style="width:11px;height:11px;border-radius:2px;background:rgba(52,199,89,0.12);"></div>
-            <span style="font-size:10px; color:var(--label3);">미제출</span>
-            <div style="width:11px;height:11px;border-radius:2px;background:#34C759; margin-left:4px;"></div>
-            <span style="font-size:10px; color:var(--label3);">제출</span>
-            <div style="width:11px;height:11px;border-radius:2px;background:#FF3B30; margin-left:4px;"></div>
-            <span style="font-size:10px; color:var(--label3);">우수 TIL</span>
+
+          <!-- 우하: TIL 잔디 -->
+          <div id="tilGrassRow" style="flex:1; padding:12px 16px 14px 10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <div style="display:flex; align-items:center; gap:5px;">
+                <div style="font-size:11px; font-weight:600; color:#1C1C1E;">TIL 잔디</div>
+                <div id="tilBadge" style="display:none;"><div class="til-badge" style="font-size:9px;padding:2px 7px;">⭐ 우수</div></div>
+              </div>
+              <div style="font-size:11px; font-weight:600; color:var(--green);" id="tilCount">–</div>
+            </div>
+            <div id="tilGrass" style="overflow-x:auto;"></div>
+            <div style="display:flex; align-items:center; gap:3px; margin-top:6px; flex-wrap:wrap;">
+              <div style="width:8px;height:8px;border-radius:1px;background:rgba(52,199,89,0.12);"></div>
+              <span style="font-size:8px; color:var(--label3);">미제출</span>
+              <div style="width:8px;height:8px;border-radius:1px;background:#34C759; margin-left:3px;"></div>
+              <span style="font-size:8px; color:var(--label3);">제출</span>
+              <div style="width:8px;height:8px;border-radius:1px;background:#FF3B30; margin-left:3px;"></div>
+              <span style="font-size:8px; color:var(--label3);">우수</span>
+            </div>
           </div>
         </div>
       </div>
@@ -1120,27 +1119,33 @@
         document.getElementById('achieveRow').style.display = 'flex';
       }
 
-      /* 단계별 커밋 차트 */
+      /* 통합 시각화 표시 조건 */
+      const hasViz = stats.phaseCommits || stats.chapterAchievement || stats.chapterAssignment || stats.chapterProject || stats.tilDates || stats.tilCount;
+      if (hasViz) document.getElementById('statsVizRow').style.display = 'flex';
+
+      /* 단계별 커밋 영역 차트 */
       if (stats.phaseCommits) {
         const pData = stats.phaseCommits.split(',').map(Number);
         const total = pData.reduce((a, b) => a + b, 0);
         document.getElementById('phaseCommitRow').style.display = 'block';
-        document.getElementById('totalCommitsLabel').textContent = total.toLocaleString() + '커밋';
+        document.getElementById('totalCommitsLabel').textContent = '총 ' + total.toLocaleString() + '커밋';
         document.getElementById('totalCommits').textContent = total.toLocaleString();
 
-        const phaseLabels = ['Swift\n기초','Swift\n심화','iOS기초\n개인','iOS기초\n팀','iOS숙련\n개인','iOS숙련\n팀','iOS심화\n개인','iOS심화\n팀','최종'];
-        const maxVal = Math.max(...pData);
-        new Chart(document.getElementById('phaseCommitChart'), {
-          type: 'bar',
+        const phaseLabels = ['S기초','S심화','기초P','기초T','숙련P','숙련T','심화P','심화T','최종'];
+        const pCtx = document.getElementById('phaseCommitChart').getContext('2d');
+        const purpleGrad = pCtx.createLinearGradient(0, 0, 0, 120);
+        purpleGrad.addColorStop(0, 'rgba(175,82,222,0.30)');
+        purpleGrad.addColorStop(1, 'rgba(175,82,222,0.00)');
+
+        new Chart(pCtx, {
+          type: 'line',
           data: {
             labels: phaseLabels,
             datasets: [{
               data: pData,
-              backgroundColor: pData.map(v =>
-                v === maxVal ? 'rgba(175,82,222,0.85)' : 'rgba(175,82,222,0.28)'
-              ),
-              borderRadius: 6,
-              borderSkipped: false,
+              borderColor: '#AF52DE', backgroundColor: purpleGrad,
+              fill: true, tension: 0.4, pointRadius: 3,
+              pointBackgroundColor: '#AF52DE', borderWidth: 2,
             }],
           },
           options: {
@@ -1155,14 +1160,8 @@
               },
             },
             scales: {
-              x: {
-                grid: { display: false },
-                ticks: { color: 'rgba(60,60,67,0.45)', font: { size: 9 } },
-              },
-              y: {
-                grid: { color: 'rgba(60,60,67,0.07)' },
-                ticks: { color: 'rgba(60,60,67,0.45)', font: { size: 10 } },
-              },
+              x: { grid:{display:false}, ticks:{color:'rgba(60,60,67,0.45)', font:{size:8}} },
+              y: { grid:{color:'rgba(60,60,67,0.07)'}, ticks:{color:'rgba(60,60,67,0.45)', font:{size:8}} },
             },
             animation: { duration: 700, easing: 'easeInOutQuart' },
           },
@@ -1171,7 +1170,6 @@
 
       /* 챕터별 추이 영역 차트 */
       if (stats.chapterAchievement || stats.chapterAssignment || stats.chapterProject) {
-        document.getElementById('chartTilRow').style.display = 'block';
         const labels = ['Swift 기초','Swift 심화','기초','숙련','심화','최종'];
         const aData = stats.chapterAchievement ? stats.chapterAchievement.split(',').map(Number) : [];
         const bData = stats.chapterAssignment  ? stats.chapterAssignment.split(',').map(Number)  : [];
@@ -1237,7 +1235,7 @@
 
       /* TIL 잔디 */
       if (stats.tilDates || stats.tilCount) {
-        document.getElementById('chartTilRow').style.display = 'block';
+        // statsVizRow는 위에서 이미 처리
         document.getElementById('tilCount').textContent = (stats.tilCount || 0) + '개';
         if (stats.tilOutstanding) document.getElementById('tilBadge').style.display = 'block';
 
