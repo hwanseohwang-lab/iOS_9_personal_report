@@ -540,6 +540,86 @@
     }
     .loading-text { font-size: 15px; color: var(--label2); }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── 프로젝트 완성도 바 ── */
+    .proj-rate-item { margin-bottom: 12px; }
+    .proj-rate-item:last-child { margin-bottom: 0; }
+    .proj-rate-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 6px;
+    }
+    .proj-rate-name { font-size: 13px; font-weight: 600; color: #1C1C1E; }
+    .proj-rate-pct  { font-size: 13px; font-weight: 700; }
+    .proj-rate-track {
+      height: 8px; border-radius: 4px;
+      background: rgba(120,120,128,0.12);
+      overflow: hidden;
+    }
+    .proj-rate-fill {
+      height: 100%; border-radius: 4px;
+      transition: width 0.8s cubic-bezier(0.26,0.60,0.36,1);
+    }
+
+    /* ── PDF 다운로드 버튼 ── */
+    .pdf-btn {
+      display: flex; align-items: center; gap: 5px;
+      background: rgba(0,122,255,0.12);
+      border: 1px solid rgba(0,122,255,0.25);
+      border-radius: 8px; padding: 6px 12px;
+      font-size: 13px; font-weight: 600; color: var(--blue);
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── 인쇄 전용 스타일 ── */
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+      .wallpaper, .status-bar, .nav-bar, .home-indicator,
+      .loading-screen, .thumb-modal { display: none !important; }
+
+      html, body { background: #fff !important; }
+
+      .screen { padding: 0 !important; }
+
+      .section { padding: 0 12px 16px !important; }
+
+      .glass-card {
+        background: #fff !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        border: 1px solid #e0e0e0 !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+      }
+      .glass-card::before { display: none !important; }
+
+      .section-label { color: #666 !important; }
+
+      /* 편지: 미리보기 숨기고 전체 내용 표시 */
+      .letter-preview, .letter-chevron { display: none !important; }
+      .letter-full-content { display: block !important; }
+      .card-row.clickable { cursor: default !important; }
+
+      /* 히어로 섹션 인쇄 */
+      .hero-badge { background: #f0f0f0 !important; }
+      .hero-quote { border-left-color: #007AFF !important; background: #f8f8f8 !important; }
+
+      /* 페이지 나눔 방지 */
+      .fade-section { opacity: 1 !important; transform: none !important; break-inside: avoid; }
+
+      /* 링크 색상 */
+      a { color: #007AFF !important; text-decoration: none !important; }
+
+      /* PDF 버튼 숨기기 */
+      .pdf-btn { display: none !important; }
+
+      /* 인쇄용 제목 */
+      .print-header { display: block !important; }
+    }
+
+    /* 화면에선 숨기기 */
+    .letter-full-content { display: none; }
+    .print-header { display: none; }
   </style>
 </head>
 <body>
@@ -584,7 +664,12 @@
       홈
     </a>
     <div class="nav-title" id="navTitle">Personal Report</div>
-    <div class="nav-right"></div>
+    <button class="pdf-btn" onclick="downloadPDF()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      PDF
+    </button>
   </div>
 
   <!-- Hero -->
@@ -706,21 +791,38 @@
           <div class="stat-lbl">총 커밋</div>
         </div>
       </div>
+      <!-- 프로젝트 완성도 -->
+      <div id="projRateRow" style="display:none; border-top:0.33px solid var(--sep); padding:16px 18px 18px; position:relative; z-index:2;">
+        <div style="font-size:14px; font-weight:600; color:#1C1C1E; margin-bottom:14px;">프로젝트 완성도</div>
+        <div id="projRateList"></div>
+      </div>
       <!-- hidden elements to avoid JS errors -->
       <div style="display:none;" id="assignRate"></div>
       <div style="display:none;" id="gradeVal"></div>
+      <!-- 단계별 커밋 차트 -->
+      <div id="phaseCommitRow" style="display:none; border-top:0.33px solid var(--sep); padding:16px 18px 18px; position:relative; z-index:2;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <div style="font-size:14px; font-weight:600; color:#1C1C1E;">단계별 커밋 현황</div>
+          <div style="font-size:13px; font-weight:700; color:var(--purple);">총 <span id="totalCommitsLabel">–</span></div>
+        </div>
+        <canvas id="phaseCommitChart" height="140"></canvas>
+      </div>
+
       <!-- 챕터 차트 (위) + TIL 잔디 (아래) -->
       <div id="chartTilRow" style="display:none; border-top:0.33px solid var(--sep); position:relative; z-index:2;">
         <!-- 챕터 차트 -->
         <div id="chapterChartRow" style="padding:16px 18px 16px 18px; border-bottom:0.33px solid var(--sep);">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <div style="font-size:14px; font-weight:600; color:#1C1C1E;">챕터별 학습 추이</div>
-            <div style="display:flex; gap:10px; align-items:center;">
-              <div style="display:flex; align-items:center; gap:5px; font-size:11px; color:var(--label2);">
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:4px; font-size:11px; color:var(--label2);">
                 <div style="width:10px;height:3px;border-radius:2px;background:var(--blue);"></div>성취도
               </div>
-              <div style="display:flex; align-items:center; gap:5px; font-size:11px; color:var(--label2);">
-                <div style="width:10px;height:3px;border-radius:2px;background:var(--green);"></div>완성도
+              <div style="display:flex; align-items:center; gap:4px; font-size:11px; color:var(--label2);">
+                <div style="width:10px;height:3px;border-radius:2px;background:var(--green);"></div>과제
+              </div>
+              <div style="display:flex; align-items:center; gap:4px; font-size:11px; color:var(--label2);">
+                <div style="width:10px;height:3px;border-radius:2px;background:var(--orange);"></div>프로젝트
               </div>
             </div>
           </div>
@@ -909,6 +1011,36 @@
         </div>`;
     }
 
+    /* 프로젝트 완성도 바 차트 */
+    const allProjs = [...regularProjs, ...(finalProj ? [finalProj] : [])];
+    const projsWithRate = allProjs.filter(p => p.completionRate > 0);
+    if (projsWithRate.length) {
+      document.getElementById('projRateRow').style.display = 'block';
+      const typeColors = { '기초':'#34C759', '숙련':'#007AFF', '심화':'#AF52DE', '최종':'#FF3B30' };
+      const list = document.getElementById('projRateList');
+      projsWithRate.forEach(p => {
+        const color = typeColors[p.projectType] || '#007AFF';
+        const rate = Math.min(100, Math.max(0, p.completionRate));
+        const item = document.createElement('div');
+        item.className = 'proj-rate-item';
+        item.innerHTML = `
+          <div class="proj-rate-header">
+            <div class="proj-rate-name">${p.name} <span class="type-badge type-${p.projectType}" style="font-size:10px;padding:2px 7px;">${p.projectType}</span></div>
+            <div class="proj-rate-pct" style="color:${color};">${rate}%</div>
+          </div>
+          <div class="proj-rate-track">
+            <div class="proj-rate-fill" style="width:0%; background:${color};" data-width="${rate}%"></div>
+          </div>`;
+        list.appendChild(item);
+      });
+      // 애니메이션 (약간 딜레이 후 채우기)
+      setTimeout(() => {
+        list.querySelectorAll('.proj-rate-fill').forEach(el => {
+          el.style.width = el.dataset.width;
+        });
+      }, 200);
+    }
+
     /* 편지 — 미리보기 카드 */
     const letterList = document.getElementById('letterList');
     if (letters?.length) {
@@ -926,7 +1058,8 @@
             <div class="letter-chevron">›</div>
           </div>
           <div class="letter-title">${l.title}</div>
-          <div class="letter-preview">${l.content.replace(/\n/g,' ')}</div>`;
+          <div class="letter-preview">${l.content.replace(/\n/g,' ')}</div>
+          <div class="letter-full-content" style="font-size:14px; color:rgba(60,60,67,0.6); line-height:1.8; white-space:pre-line; margin-top:10px;">${l.content}</div>`;
         el.addEventListener('click', () => {
           sessionStorage.setItem('letterData', JSON.stringify(l));
           window.location.href = 'letter.html';
@@ -987,12 +1120,62 @@
         document.getElementById('achieveRow').style.display = 'flex';
       }
 
+      /* 단계별 커밋 차트 */
+      if (stats.phaseCommits) {
+        const pData = stats.phaseCommits.split(',').map(Number);
+        const total = pData.reduce((a, b) => a + b, 0);
+        document.getElementById('phaseCommitRow').style.display = 'block';
+        document.getElementById('totalCommitsLabel').textContent = total.toLocaleString() + '커밋';
+        document.getElementById('totalCommits').textContent = total.toLocaleString();
+
+        const phaseLabels = ['Swift\n기초','Swift\n심화','iOS기초\n개인','iOS기초\n팀','iOS숙련\n개인','iOS숙련\n팀','iOS심화\n개인','iOS심화\n팀','최종'];
+        const maxVal = Math.max(...pData);
+        new Chart(document.getElementById('phaseCommitChart'), {
+          type: 'bar',
+          data: {
+            labels: phaseLabels,
+            datasets: [{
+              data: pData,
+              backgroundColor: pData.map(v =>
+                v === maxVal ? 'rgba(175,82,222,0.85)' : 'rgba(175,82,222,0.28)'
+              ),
+              borderRadius: 6,
+              borderSkipped: false,
+            }],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: { label: c => ' ' + c.parsed.y + '커밋' },
+                backgroundColor: 'rgba(255,255,255,0.95)',
+                titleColor: '#1C1C1E', bodyColor: 'rgba(60,60,67,0.7)',
+                borderColor: 'rgba(60,60,67,0.12)', borderWidth: 1,
+              },
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: 'rgba(60,60,67,0.45)', font: { size: 9 } },
+              },
+              y: {
+                grid: { color: 'rgba(60,60,67,0.07)' },
+                ticks: { color: 'rgba(60,60,67,0.45)', font: { size: 10 } },
+              },
+            },
+            animation: { duration: 700, easing: 'easeInOutQuart' },
+          },
+        });
+      }
+
       /* 챕터별 추이 영역 차트 */
-      if (stats.chapterAchievement || stats.chapterAssignment) {
+      if (stats.chapterAchievement || stats.chapterAssignment || stats.chapterProject) {
         document.getElementById('chartTilRow').style.display = 'block';
         const labels = ['Swift 기초','Swift 심화','기초','숙련','심화','최종'];
         const aData = stats.chapterAchievement ? stats.chapterAchievement.split(',').map(Number) : [];
         const bData = stats.chapterAssignment  ? stats.chapterAssignment.split(',').map(Number)  : [];
+        const cData = stats.chapterProject     ? stats.chapterProject.split(',').map(Number)     : [];
         const ctx = document.getElementById('chapterChart').getContext('2d');
 
         const blueGrad = ctx.createLinearGradient(0, 0, 0, 200);
@@ -1001,6 +1184,9 @@
         const greenGrad = ctx.createLinearGradient(0, 0, 0, 200);
         greenGrad.addColorStop(0, 'rgba(52,199,89,0.22)');
         greenGrad.addColorStop(1, 'rgba(52,199,89,0.00)');
+        const orangeGrad = ctx.createLinearGradient(0, 0, 0, 200);
+        orangeGrad.addColorStop(0, 'rgba(255,149,0,0.22)');
+        orangeGrad.addColorStop(1, 'rgba(255,149,0,0.00)');
 
         const datasets = [];
         if (aData.length) datasets.push({
@@ -1014,6 +1200,12 @@
           borderColor:'#34C759', backgroundColor:greenGrad,
           fill:true, tension:0.45, pointRadius:4,
           pointBackgroundColor:'#34C759', borderWidth:2,
+        });
+        if (cData.length) datasets.push({
+          label:'프로젝트 완성도', data:cData,
+          borderColor:'#FF9500', backgroundColor:orangeGrad,
+          fill:true, tension:0.45, pointRadius:4,
+          pointBackgroundColor:'#FF9500', borderWidth:2,
         });
 
         new Chart(ctx, {
@@ -1134,6 +1326,15 @@
       { threshold: 0.08 });
     document.querySelectorAll('.fade-section').forEach(el => obs.observe(el));
     setTimeout(() => document.getElementById('heroSection').classList.add('visible'), 60);
+  }
+
+  /* ── PDF 다운로드 ── */
+  function downloadPDF() {
+    const name = document.getElementById('heroName')?.textContent || 'Personal Report';
+    const originalTitle = document.title;
+    document.title = name + ' - Personal Report';
+    window.print();
+    document.title = originalTitle;
   }
 
   /* ── 썸네일 모달 ── */
